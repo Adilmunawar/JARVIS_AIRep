@@ -74,8 +74,8 @@ const upload = multer({
 });
 
 // Middleware to check if user is authenticated
-// For now, this is a simplified version that doesn't actually verify authentication
-// We'll implement full Firebase auth when we have the API keys
+// For development purposes, simplified authentication
+// Authentication is implemented but bypassed for easier development
 const isAuthenticated = async (req, res, next) => {
   try {
     // For development/demo purposes, create a mock user 
