@@ -154,7 +154,7 @@ export function MessageItem({ message }: MessageItemProps) {
           {!isUserMessage && (
             <div className="flex items-center gap-1 bg-gray-800/50 px-2 py-0.5 rounded-full text-xs text-gray-400">
               {getModelIcon()}
-              <span className="ml-1">{message.metadata?.model || 'gpt-4o'}</span>
+              <span className="ml-1">{metadata.model || 'gpt-4o'}</span>
             </div>
           )}
           
@@ -174,8 +174,13 @@ export function MessageItem({ message }: MessageItemProps) {
             ref={contentRef}
           >
             <ReactMarkdown
-              className="text-gray-200 prose prose-invert max-w-none"
               components={{
+                // Apply styling via wrapper div instead of directly on ReactMarkdown
+                root: ({ children }) => (
+                  <div className="text-gray-200 prose prose-invert max-w-none">
+                    {children}
+                  </div>
+                ),
                 code({node, inline, className, children, ...props}) {
                   const match = /language-(\w+)/.exec(className || '');
                   return !inline && match ? (
