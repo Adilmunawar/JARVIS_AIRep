@@ -200,7 +200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If conversationId is provided, use that conversation
       if (validatedData.conversationId) {
-        conversation = await storage.getConversation(validatedData.conversationId);
+        conversation = await dbStorage.getConversation(validatedData.conversationId);
         
         // Check if conversation belongs to user
         if (!conversation || conversation.userId !== user.id) {
@@ -209,14 +209,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // Create a new conversation
         const title = validatedData.content.split(" ").slice(0, 5).join(" ") + "...";
-        conversation = await storage.createConversation({
+        conversation = await dbStorage.createConversation({
           userId: user.id,
           title: title,
         });
       }
       
       // Create user message
-      const userMessage = await storage.createMessage({
+      const userMessage = await dbStorage.createMessage({
         conversationId: conversation.id,
         content: validatedData.content,
         role: "user",
@@ -226,17 +226,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const aiResponse = await chatCompletion(validatedData.content);
       
       // Create AI message
-      const assistantMessage = await storage.createMessage({
+      const assistantMessage = await dbStorage.createMessage({
         conversationId: conversation.id,
         content: aiResponse,
         role: "assistant",
       });
       
       // Update conversation's updatedAt
-      await storage.updateConversation(conversation.id, { updatedAt: new Date() });
+      await dbStorage.updateConversation(conversation.id, { updatedAt: new Date() });
       
       // Get all messages for this conversation
-      const messages = await storage.getMessagesByConversationId(conversation.id);
+      const messages = await dbStorage.getMessagesByConversationId(conversation.id);
       
       res.status(200).json({
         conversationId: conversation.id,
@@ -252,13 +252,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // File upload and chat
-  app.post("/api/chat/with-files", isAuthenticated, upload.array("files", 5), async (req, res) => {
+  app.post("/api/chat/with-files", isAuthenticated, upload.array("files", 5), async (req: RequestWithUser, res: any) => {
     try {
       const content = req.body.content || "";
       const conversationId = req.body.conversationId ? parseInt(req.body.conversationId) : undefined;
       const userId = req.user.uid;
       
-      const user = await storage.getUserByGoogleId(userId);
+      const user = await dbStorage.getUserByGoogleId(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
@@ -267,7 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If conversationId is provided, use that conversation
       if (conversationId) {
-        conversation = await storage.getConversation(conversationId);
+        conversation = await dbStorage.getConversation(conversationId);
         
         // Check if conversation belongs to user
         if (!conversation || conversation.userId !== user.id) {
@@ -278,14 +278,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const title = content 
           ? content.split(" ").slice(0, 5).join(" ") + "..."
           : "File analysis";
-        conversation = await storage.createConversation({
+        conversation = await dbStorage.createConversation({
           userId: user.id,
           title: title,
         });
       }
       
       // Create user message
-      const userMessage = await storage.createMessage({
+      const userMessage = await dbStorage.createMessage({
         conversationId: conversation.id,
         content: content || "Uploaded file(s) for analysis",
         role: "user",
@@ -297,7 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       for (const file of files) {
         // Save file information in the database
-        const dbFile = await storage.createFile({
+        const dbFile = await dbStorage.createFile({
           messageId: userMessage.id,
           fileName: file.originalname,
           fileType: file.mimetype,
@@ -335,25 +335,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const aiResponse = await chatCompletion(prompt);
       
       // Create AI message
-      const assistantMessage = await storage.createMessage({
+      const assistantMessage = await dbStorage.createMessage({
         conversationId: conversation.id,
         content: aiResponse,
         role: "assistant",
       });
       
       // Update conversation's updatedAt
-      await storage.updateConversation(conversation.id, { updatedAt: new Date() });
+      await dbStorage.updateConversation(conversation.id, { updatedAt: new Date() });
       
       // Get all messages for this conversation
-      const messages = await storage.getMessagesByConversationId(conversation.id);
+      const messages = await dbStorage.getMessagesByConversationId(conversation.id);
       
       // Add file info to messages
       const messagesWithFiles = await Promise.all(
-        messages.map(async (message) => {
-          const files = await storage.getFilesByMessageId(message.id);
+        messages.map(async (message: any) => {
+          const files = await dbStorage.getFilesByMessageId(message.id);
           return {
             ...message,
-            files: files.map(file => ({
+            files: files.map((file: any) => ({
               fileName: file.fileName,
               fileType: file.fileType,
               fileSize: file.fileSize,
