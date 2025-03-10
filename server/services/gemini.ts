@@ -2,8 +2,8 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/ge
 
 // Initialize the Gemini API
 const API_KEY = process.env.GEMINI_API_KEY;
-const MODEL_NAME = 'models/gemini-pro'; // Updated to use correct model path
-const VISION_MODEL_NAME = 'models/gemini-pro-vision'; // Updated vision model path
+const MODEL_NAME = 'gemini-pro'; // Using correct standard model name
+const VISION_MODEL_NAME = 'gemini-pro-vision'; // Using correct vision model name
 
 if (!API_KEY) {
   console.warn('Warning: GEMINI_API_KEY is not set. Gemini API will not work properly.');

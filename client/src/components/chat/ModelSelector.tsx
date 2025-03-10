@@ -19,16 +19,16 @@ export function ModelSelector({ onModelChange, currentModel }: ModelSelectorProp
 
   const models: Model[] = [
     {
-      id: 'gpt-4o',
-      name: 'ChatGPT',
-      icon: <SiOpenai size={22} className="text-green-400" />,
-      description: 'GPT-4o - Advanced reasoning, coding, and creative text capabilities'
+      id: 'gemini-pro',
+      name: 'Gemini Pro',
+      icon: <SiGoogle size={22} className="text-blue-500" />,
+      description: 'Google\'s powerful multimodal AI with advanced capabilities'
     },
     {
-      id: 'gemini-pro',
-      name: 'Gemini',
-      icon: <SiGoogle size={22} className="text-blue-400" />,
-      description: 'Gemini Pro - Google\'s multimodal AI with balanced performance'
+      id: 'gemini-pro-vision',
+      name: 'Gemini Vision',
+      icon: <SiGoogle size={22} className="text-purple-500" />,
+      description: 'Enhanced image understanding and visual analysis'
     }
   ];
 
