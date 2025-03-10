@@ -7,7 +7,7 @@ import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import { z } from "zod";
 import { messageInputSchema } from "../shared/schema";
-import { analyzeImage, analyzeDocument, chatCompletion } from "./services/openai";
+import { analyzeImage, analyzeDocument, chatCompletion, type ChatMessage } from "./services/gemini";
 import * as firebaseAdmin from "firebase-admin";
 import { initializeApp, cert } from "firebase-admin/app";
 
@@ -222,14 +222,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: "user",
       });
       
-      // Get AI response
-      const aiResponse = await chatCompletion(validatedData.content);
+      // Get all previous messages for context
+      const previousMessages = await dbStorage.getMessagesByConversationId(conversation.id);
       
-      // Create AI message
+      // Format messages for Gemini API
+      const chatMessages: ChatMessage[] = previousMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+      
+      // Add current message
+      chatMessages.push({
+        role: "user",
+        content: validatedData.content
+      });
+      
+      // Get AI response
+      const geminiResponse = await chatCompletion(chatMessages);
+      
+      // Create AI message with metadata
       const assistantMessage = await dbStorage.createMessage({
         conversationId: conversation.id,
-        content: aiResponse,
+        content: geminiResponse.text,
         role: "assistant",
+        metadata: JSON.stringify({
+          model: geminiResponse.metadata.model,
+          processingTime: geminiResponse.metadata.processingTime
+        })
       });
       
       // Update conversation's updatedAt
@@ -331,14 +350,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       prompt += "\nPlease respond to the user based on these files and their message.";
       
-      // Get AI response
-      const aiResponse = await chatCompletion(prompt);
+      // Format message for Gemini API
+      const chatMessages: ChatMessage[] = [{
+        role: "user",
+        content: prompt
+      }];
       
-      // Create AI message
+      // Get AI response
+      const geminiResponse = await chatCompletion(chatMessages);
+      
+      // Create AI message with metadata
       const assistantMessage = await dbStorage.createMessage({
         conversationId: conversation.id,
-        content: aiResponse,
+        content: geminiResponse.text,
         role: "assistant",
+        metadata: JSON.stringify({
+          model: geminiResponse.metadata.model,
+          processingTime: geminiResponse.metadata.processingTime
+        })
       });
       
       // Update conversation's updatedAt

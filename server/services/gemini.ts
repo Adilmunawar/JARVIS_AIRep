@@ -5,7 +5,7 @@ const API_KEY = process.env.GEMINI_API_KEY;
 const MODEL_NAME = 'gemini-pro'; // 'gemini-pro-vision' for images
 
 if (!API_KEY) {
-  console.warn('Warning: GEMINI_API_KEY is not set. Gemini API won't work properly.');
+  console.warn('Warning: GEMINI_API_KEY is not set. Gemini API will not work properly.');
 }
 
 const genAI = new GoogleGenerativeAI(API_KEY || '');
@@ -99,9 +99,9 @@ export async function chatCompletion(
         processingTime
       }
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Gemini API Error:', error);
-    throw new Error(`Gemini API Error: ${error.message}`);
+    throw new Error(`Gemini API Error: ${error?.message || 'Unknown error'}`);
   }
 }
 
@@ -136,9 +136,9 @@ export async function analyzeImage(imagePath: string, prompt?: string): Promise<
     ]);
     
     return result.response.text();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Gemini Vision API Error:', error);
-    throw new Error(`Gemini Vision API Error: ${error.message}`);
+    throw new Error(`Gemini Vision API Error: ${error?.message || 'Unknown error'}`);
   }
 }
 
@@ -164,9 +164,9 @@ export async function analyzeDocument(filePath: string): Promise<string> {
     
     const result = await model.generateContent(prompt);
     return result.response.text();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Gemini Document Analysis Error:', error);
-    throw new Error(`Gemini Document Analysis Error: ${error.message}`);
+    throw new Error(`Gemini Document Analysis Error: ${error?.message || 'Unknown error'}`);
   }
 }
 
