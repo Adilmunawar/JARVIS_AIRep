@@ -2,7 +2,8 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/ge
 
 // Initialize the Gemini API
 const API_KEY = process.env.GEMINI_API_KEY;
-const MODEL_NAME = 'gemini-pro'; // 'gemini-pro-vision' for images
+const MODEL_NAME = 'models/gemini-pro'; // Updated to use correct model path
+const VISION_MODEL_NAME = 'models/gemini-pro-vision'; // Updated vision model path
 
 if (!API_KEY) {
   console.warn('Warning: GEMINI_API_KEY is not set. Gemini API will not work properly.');
@@ -111,7 +112,7 @@ export async function chatCompletion(
 export async function analyzeImage(imagePath: string, prompt?: string): Promise<string> {
   try {
     const model = genAI.getGenerativeModel({
-      model: 'gemini-pro-vision',
+      model: VISION_MODEL_NAME,
       generationConfig,
       safetySettings,
     });
