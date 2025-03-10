@@ -38,6 +38,7 @@ export const messages = pgTable("messages", {
   content: text("content").notNull(),
   role: text("role").notNull(), // 'user' or 'assistant'
   timestamp: timestamp("timestamp").defaultNow().notNull(),
+  metadata: text("metadata"), // JSON string containing model info, tokens, etc.
 });
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
@@ -78,6 +79,18 @@ export type InsertFile = z.infer<typeof insertFileSchema>;
 export const messageInputSchema = z.object({
   content: z.string().min(1),
   conversationId: z.number().optional(),
+  model: z.string().optional(), // Allow specifying the AI model to use
 });
 
 export type MessageInput = z.infer<typeof messageInputSchema>;
+
+// Metadata related types
+export type MessageMetadata = {
+  model: string;
+  tokens?: {
+    prompt?: number;
+    completion?: number;
+    total?: number;
+  };
+  processingTime?: number;
+};

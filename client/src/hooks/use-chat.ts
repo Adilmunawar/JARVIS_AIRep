@@ -13,7 +13,7 @@ export function useChat() {
     throw new Error('useChat must be used within a ChatProvider');
   }
   
-  const sendMessage = async (content: string, files?: File[]) => {
+  const sendMessage = async (content: string, files?: File[], model?: string) => {
     if (!content.trim() && (!files || files.length === 0)) return;
     
     try {
@@ -30,6 +30,11 @@ export function useChat() {
         
         if (context.currentConversationId) {
           formData.append('conversationId', context.currentConversationId.toString());
+        }
+        
+        // Add model selection if provided
+        if (model) {
+          formData.append('model', model);
         }
         
         // Attach files
@@ -55,6 +60,7 @@ export function useChat() {
         const apiResponse = await apiRequest('POST', '/api/chat', {
           content,
           conversationId: context.currentConversationId,
+          model: model || 'gpt-4o', // Default to GPT-4o if not specified
         });
         
         response = await apiResponse.json();
