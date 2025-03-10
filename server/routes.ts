@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage as dbStorage } from "./storage";
 import multer from "multer";
@@ -10,6 +10,15 @@ import { messageInputSchema } from "../shared/schema";
 import { analyzeImage, analyzeDocument, chatCompletion } from "./services/openai";
 import * as firebaseAdmin from "firebase-admin";
 import { initializeApp, cert } from "firebase-admin/app";
+
+// Define RequestWithUser interface to handle the user property
+interface RequestWithUser extends Request {
+  user: {
+    uid: string;
+    name?: string;
+    email?: string;
+  };
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadsDir = path.join(__dirname, "../uploads");
@@ -76,7 +85,7 @@ const upload = multer({
 // Middleware to check if user is authenticated
 // For development purposes, simplified authentication
 // Authentication is implemented but bypassed for easier development
-const isAuthenticated = async (req, res, next) => {
+const isAuthenticated = async (req: RequestWithUser, res: any, next: any) => {
   try {
     // For development/demo purposes, create a mock user 
     // This allows testing without Firebase auth
@@ -177,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Chat routes
-  app.post("/api/chat", isAuthenticated, async (req, res) => {
+  app.post("/api/chat", isAuthenticated, async (req: RequestWithUser, res: any) => {
     try {
       const validatedData = messageInputSchema.parse(req.body);
       const userId = req.user.uid;
@@ -368,13 +377,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/conversations", isAuthenticated, async (req, res) => {
     try {
       const userId = req.user.uid;
-      const user = await storage.getUserByGoogleId(userId);
+      const user = await dbStorage.getUserByGoogleId(userId);
       
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
       
-      const conversations = await storage.getConversationsByUserId(user.id);
+      const conversations = await dbStorage.getConversationsByUserId(user.id);
       res.status(200).json(conversations);
     } catch (error) {
       console.error("Error fetching conversations:", error);
@@ -387,24 +396,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversationId = parseInt(req.params.id);
       const userId = req.user.uid;
       
-      const user = await storage.getUserByGoogleId(userId);
+      const user = await dbStorage.getUserByGoogleId(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
       
       // Check if conversation belongs to user
-      const conversation = await storage.getConversation(conversationId);
+      const conversation = await dbStorage.getConversation(conversationId);
       if (!conversation || conversation.userId !== user.id) {
         return res.status(403).json({ error: "Access denied to this conversation" });
       }
       
       // Get messages
-      const messages = await storage.getMessagesByConversationId(conversationId);
+      const messages = await dbStorage.getMessagesByConversationId(conversationId);
       
       // Add file info to messages
       const messagesWithFiles = await Promise.all(
         messages.map(async (message) => {
-          const files = await storage.getFilesByMessageId(message.id);
+          const files = await dbStorage.getFilesByMessageId(message.id);
           return {
             ...message,
             files: files.map(file => ({
@@ -430,24 +439,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileId = parseInt(req.params.id);
       const userId = req.user.uid;
       
-      const user = await storage.getUserByGoogleId(userId);
+      const user = await dbStorage.getUserByGoogleId(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
       
       // Get file
-      const file = await storage.getFile(fileId);
+      const file = await dbStorage.getFile(fileId);
       if (!file) {
         return res.status(404).json({ error: "File not found" });
       }
       
       // Check if user has access to the file by checking the message and conversation
-      const message = await storage.getMessage(file.messageId);
+      const message = await dbStorage.getMessage(file.messageId);
       if (!message) {
         return res.status(404).json({ error: "Message not found" });
       }
       
-      const conversation = await storage.getConversation(message.conversationId);
+      const conversation = await dbStorage.getConversation(message.conversationId);
       if (!conversation || conversation.userId !== user.id) {
         return res.status(403).json({ error: "Access denied to this file" });
       }
