@@ -1,6 +1,33 @@
 {
   "variant": "vibrant",
   "primary": "hsl(213, 94%, 68%)",
+  "secondary": "hsl(340, 82%, 52%)",
+  "background": "hsl(220, 15%, 15%)",
+  "text": "hsl(0, 0%, 100%)",
+  "accent": "hsl(48, 100%, 67%)",
   "appearance": "dark",
-  "radius": 1.2
+  "radius": 1.2,
+  "font": {
+    "family": "Arial, sans-serif",
+    "size": "14px",
+    "weight": "400"
+  },
+  "spacing": {
+    "padding": "10px",
+    "margin": "10px"
+  },
+  "border": {
+    "width": "2px",
+    "style": "solid",
+    "color": "hsl(213, 94%, 68%)"
+  },
+  "shadows": {
+    "small": "0 1px 3px rgba(0, 0, 0, 0.12)",
+    "medium": "0 3px 6px rgba(0, 0, 0, 0.16)",
+    "large": "0 10px 20px rgba(0, 0, 0, 0.19)"
+  },
+  "transitions": {
+    "duration": "0.3s",
+    "timing": "ease-in-out"
+  }
 }
